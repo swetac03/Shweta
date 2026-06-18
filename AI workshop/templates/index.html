@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SciWrite AI — Production-Grade Research Paper Generator</title>
+    <link rel="stylesheet" href="[https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap)">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            color: #1e293b;
+            line-height: 1.5;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Layout Structure Architecture */
+        aside {
+            width: 320px;
+            background: #ffffff;
+            border-right: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: flex-start;
+            flex-direction: column;
+            position: fixed;
+            top: 0; bottom: 0; left: 0;
+            z-index: 100;
+            overflow-y: auto;
+        }
+        main {
+            margin-left: 320px;
+            flex: 1;
+            padding: 40px 52px;
+            background: #f8fafc;
+        }
+
+        /* Sidebar Component Layout Styles */
+        .sci-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 24px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .sci-logo-icon {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; color: #fff;
+        }
+        .sci-logo-text { font-size: 1.1rem; font-weight: 700; color: #0f172a; }
+        .sci-logo-badge {
+            font-size: 0.6rem; font-weight: 700; background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            color: #fff; padding: 2px 6px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        .sb-label {
+            font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em;
+            text-transform: uppercase; color: #64748b; padding: 20px 24px 6px;
+        }
+        .sb-group { padding: 0 24px 12px; }
+        .sb-control { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 0.88rem; color: #334155; outline: none; background: #fff; transition: all 0.15s; }
+        .sb-control:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        
+        .radio-box-container { display: flex; flex-direction: column; gap: 6px; }
+        .radio-row { display: flex; gap: 8px; }
+        .radio-label {
+            flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+            padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.82rem;
+            font-weight: 500; cursor: pointer; background: #fff; color: #475569; transition: all 0.15s;
+        }
+        input[type="radio"] { display: none; }
+        input[type="radio"]:checked + .radio-label {
+            background: rgba(59, 130, 246, 0.06); border-color: #3b82f6; color: #2563eb;
+        }
+        .sb-slider-meta { font-size: 0.75rem; color: #64748b; margin-top: 6px; font-weight: 500; }
+
+        /* Main Workspace Presentation Layer Elements */
+        .hero-wrap { margin-bottom: 32px; }
+        .hero-eyebrow { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #2563eb; margin-bottom: 8px; }
+        .hero-h1 { font-family: 'Playfair Display', Georgia, serif; font-size: 2.4rem; font-weight: 700; line-height: 1.2; color: #0f172a; margin-bottom: 10px; }
+        .hero-sub { font-size: 1rem; color: #475569; max-width: 720px; }
+        
+        .stat-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+        .stat-pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(59, 130, 246, 0.06); border: 1px solid rgba(59, 130, 246, 0.15); border-radius: 20px; padding: 4px 12px; font-size: 0.78rem; font-weight: 500; color: #2563eb; }
+
+        /* Navigation Management Tab Systems */
+        .tab-wrapper { display: flex; border-bottom: 1px solid #e2e8f0; margin-bottom: 28px; gap: 8px; }
+        .tab-btn { background: none; border: none; padding: 12px 18px; font-family: inherit; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; color: #64748b; border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.15s; }
+        .tab-btn:hover { color: #334155; }
+        .tab-btn.active { color: #2563eb; border-bottom-color: #2563eb; }
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
+
+        /* Standardized Card Container Modules Layouts */
+        .card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+        .card-sm { background: #f1f5f9; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; }
+        
+        .sec-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+        .sec-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; background: rgba(59, 130, 246, 0.1); color: #2563eb; }
+        .sec-title { font-size: 1.05rem; font-weight: 600; color: #0f172a; }
+        .sec-sub { font-size: 0.82rem; color: #64748b; margin-top: 1px; }
+
+        /* Technical Content Form Input Parameters Component Classes */
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #475569; margin-bottom: 6px; }
+        .form-control { width: 100%; padding: 11px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 0.9rem; color: #1e293b; background: #fff; outline: none; transition: all 0.15s; }
+        .form-control:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08); }
+        textarea.form-control { resize: vertical; min-height: 110px; }
+
+        /* Dynamic Grid Layout Structures Matrix */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+        /* Authors Table Administration Interface Modulators */
+        .authors-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; text-align: left; }
+        .authors-table th { background: #f8fafc; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #475569; padding: 10px 12px; border-bottom: 1px solid #e2e8f0; }
+        .authors-table td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; }
+        .authors-table .form-control { padding: 6px 10px; font-size: 0.85rem; }
+        .btn-action { background: none; border: none; padding: 4px 8px; font-size: 0.85rem; font-weight: 500; cursor: pointer; color: #ef4444; }
+        .btn-add-row { background: #f1f5f9; border: 1px dashed #cbd5e1; border-radius: 6px; color: #475569; padding: 8px; font-size: 0.82rem; font-weight: 600; width: 100%; cursor: pointer; text-align: center; transition: all 0.15s; }
+        .btn-add-row:hover { background: #e2e8f0; color: #0f172a; }
+
+        /* Primary Dynamic Action Trigger Components Core */
+        .btn-primary { background: linear-gradient(135deg, #2563eb 0%, #6d28d9 100%); color: #fff; border: none; border-radius: 8px; padding: 12px 28px; font-size: 0.9rem; font-weight: 600; letter-spacing: 0.02em; cursor: pointer; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25); transition: opacity 0.2s; }
+        .btn-primary:hover { opacity: 0.95; }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+
+        /* Notification and Compilation Feedback Blocks */
+        .status-alert { padding: 14px 18px; border-radius: 8px; font-size: 0.88rem; margin-bottom: 20px; display: none; }
+        .status-alert.error { background: #fef2f2; border: 1px solid #fee2e2; color: #b91c1c; display: block; }
+        .status-alert.success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; display: block; }
+        .gen-status-bar { display: flex; align-items: center; gap: 12px; background: rgba(34, 197, 94, 0.06); border: 1px solid rgba(34, 197, 94, 0.2); border-radius: 8px; padding: 14px 18px; margin-bottom: 24px; }
+        .gen-status-dot { width: 10px; height: 10px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e; animation: pulse 2s infinite; }
+        .gen-status-text { font-size: 0.88rem; font-weight: 600; color: #166534; }
+        .gen-status-meta { font-size: 0.82rem; color: #64748b; margin-left: auto; font-weight: 500; }
+
+        /* Export workspace module structures */
+        .dl-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 14px; margin-bottom: 24px; }
+        .dl-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px; text-align: left; box-shadow: 0 1px 2px rgba(0,0,0,0.01); }
+        .dl-card-title { font-size: 0.88rem; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
+        .dl-card-meta { font-size: 0.78rem; color: #64748b; margin-bottom: 14px; }
+        .dl-btn { display: block; text-align: center; background: #fff; color: #2563eb; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; font-size: 0.82rem; font-weight: 600; text-decoration: none; transition: all 0.15s; }
+        .dl-btn:hover { background: rgba(59, 130, 246, 0.04); border-color: #3b82f6; }
+        .overleaf-cta { display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: rgba(71, 181, 75, 0.08); border: 1px solid rgba(71, 181, 75, 0.25); color: #2e7d32; }
+        .overleaf-cta:hover { background: rgba(71, 181, 75, 0.15); border-color: #2e7d32; color: #1b5e20; }
+
+        /* Expandable section toggles view structure layers */
+        .expander { border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 12px; background: #fff; overflow: hidden; }
+        .expander-header { background: #f8fafc; padding: 12px 16px; font-size: 0.85rem; font-weight: 600; color: #475569; cursor: pointer; user-select: none; display: flex; justify-content: space-between; align-items: center; }
+        .expander-content { padding: 16px; border-top: 1px solid #e2e8f0; display: none; background: #ffffff; }
+        .expander.open .expander-content { display: block; }
+        
+        pre { background: #0f172a; color: #f8fafc; padding: 14px; border-radius: 8px; overflow-x: auto; font-size: 0.8rem; font-family: monospace; line-height: 1.4; max-height: 400px; }
+        .metrics-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .metrics-table th { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #64748b; padding: 8px 12px; border-bottom: 2px solid #e2e8f0; }
+        .metrics-table td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; }
+
+        /* Loader Animation Sequences elements styling definitions */
+        .loader-container { display: none; text-align: center; padding: 40px; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #2563eb; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        footer { border-top: 1px solid #e2e8f0; margin-top: 48px; text-align: center; color: #94a3b8; font-size: 0.75rem; padding: 24px 0 12px; }
+    </style>
+</head>
+<body>
+
+    <aside>
+        <div class="sci-logo">
+            <div class="sci-logo-icon">&#128300;</div>
+            <div>
+                <div class="sci-logo-text">SciWrite AI</div>
+            </div>
+            <div class="sci-logo-badge">v2.0</div>
+        </div>
+
+        <div class="sb-label">Document Layout</div>
+        <div class="sb-group">
+            <div class="radio-box-container">
+                <div class="radio-row">
+                    <input type="radio" id="lay_single" name="layout_opt" value="Single Column" checked onchange="updateSidebarEstimates()">
+                    <label class="radio-label" for="lay_single">Single Column</label>
+                    <input type="radio" id="lay_double" name="layout_opt" value="Double Column" onchange="updateSidebarEstimates()">
+                    <label class="radio-label" for="lay_double">Double Column</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="sb-label">Paper Length Target</div>
+        <div class="sb-group">
+            <input type="range" id="target_pages" class="sb-control" min="4" max="20" value="8" step="1" oninput="updateSidebarEstimates()">
+            <div id="sidebar_metrics_est" class="sb-slider-meta">~3,600 words · ~8 pages</div>
+        </div>
+
+        <div class="sb-label">Target Venue</div>
+        <div class="sb-group">
+            <select id="target_venue" class="sb-control">
+                <option value="NeurIPS" selected>NeurIPS</option>
+                <option value="ICML">ICML</option>
+                <option value="ICLR">ICLR</option>
+                <option value="CVPR">CVPR</option>
+                <option value="ACL">ACL</option>
+                <option value="Nature">Nature</option>
+                <option value="Science">Science</option>
+                <option value="IEEE Transactions">IEEE Transactions</option>
+                <option value="AAAI">AAAI</option>
+                <option value="ECCV">ECCV</option>
+                <option value="EMNLP">EMNLP</option>
+                <option value="Custom / Unspecified">Custom / Unspecified</option>
+            </select>
+        </div>
+
+        <div class="sb-label">Upload Empirical Figures</div>
+        <div class="sb-group">
+            <input type="file" id="figure_uploader" class="sb-control" accept="image/png, image/jpeg, image/jpg" multiple onchange="handleFigureUploads()">
+            <div id="file_count_feedback" class="sb-slider-meta" style="color: #2563eb;">0 figure(s) loaded.</div>
+        </div>
+
+        <div style="margin-top: auto; padding: 24px; border-top: 1px solid #e2e8f0; font-size: 0.72rem; color: #64748b; line-height: 1.8;">
+            <strong style="color:#475569;">Workflow Strategy</strong><br>
+            1 &middot; Configure Metadata &amp; Authors<br>
+            2 &middot; Supply Bulleted Context Fields<br>
+            3 &middot; Inject Bibliography Records<br>
+            4 &middot; Run Pipeline Architecture Generation
+        </div>
+    </aside>
+
+    <main>
+        <div class="hero-wrap">
+            <div class="hero-eyebrow">AI-Powered Academic Writing Suite</div>
+            <h1 class="hero-h1">SciWrite AI</h1>
+            <div class="hero-sub">Transform unstructured notes, metrics, and outlines into full-length, publication-ready research papers. Gemini synthesizes rigorous mathematical structures and cross-referenced narratives directly into native Overleaf LaTeX templates.</div>
+            <div class="stat-row">
+                <div class="stat-pill">&#128300; Gemini 2.0 Flash</div>
+                <div class="stat-pill">&#128208; LaTeX Structured Template</div>
+                <div class="stat-pill">&#128196; Up to 20 Pages Dynamic Scale</div>
+                <div class="stat-pill">&#127963; 8 Target Publication Formats</div>
+            </div>
+        </div>
+
+        <div class="tab-wrapper">
+            <button class="tab-btn active" onclick="switchTab(event, 'tab_metadata')">&#128203; Metadata</button>
+            <button class="tab-btn" onclick="switchTab(event, 'tab_context')">&#128300; Research Context</button>
+            <button class="tab-btn" onclick="switchTab(event, 'tab_bibliography')">&#128218; Bibliography</button>
+            <button class="tab-btn" onclick="switchTab(event, 'tab_runtime')">&#128640; Generate &amp; Export</button>
+        </div>
+
+        <div id="global_error_alert" class="status-alert error" style="display: none;"></div>
+
+        <div id="tab_metadata" class="tab-pane active">
+            <div class="card">
+                <div class="sec-header">
+                    <div class="sec-icon">&#128203;</div>
+                    <div>
+                        <div class="sec-title">Document Metadata</div>
+                        <div class="sec-sub">Title configuration, keywords indexing structures, and metadata flags</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="paper_title">Paper Title</label>
+                    <input type="text" id="paper_title" class="form-control" value="Deep Multimodal Fusion for Robust Temporal Sequence Modelling in Noisy Environments">
+                </div>
+                <div class="form-group">
+                    <label for="paper_keywords">Keywords (comma-separated)</label>
+                    <input type="text" id="paper_keywords" class="form-control" value="multimodal learning, temporal modelling, attention mechanisms, deep learning">
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="sec-header">
+                    <div class="sec-icon">&#128101;</div>
+                    <div>
+                        <div class="sec-title">Author Affiliation Matrix Configurations</div>
+                        <div class="sec-sub">Add or delete dynamic rows managing credentials for printing parameters layouts</div>
+                    </div>
+                </div>
+                <table class="authors-table" id="authors_data_table">
+                    <thead>
+                        <tr>
+                            <th>Full Name</th>
+                            <th>Affiliation String</th>
+                            <th>Email Address</th>
+                            <th style="width: 60px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><input type="text" class="form-control auth-name" value="Alice J. Researcher"></td>
+                            <td><input type="text" class="form-control auth-affil" value="MIT CSAIL, Cambridge, MA, USA"></td>
+                            <td><input type="text" class="form-control auth-email" value="aresearcher@mit.edu"></td>
+                            <td><button class="btn-action" onclick="deleteAuthorRow(this)">Remove</button></td>
+                        </tr>
+                        <tr>
+                            <td><input type="text" class="form-control auth-name" value="Bob K. Scholar"></td>
+                            <td><input type="text" class="form-control auth-affil" value="Stanford NLP Group, Stanford, CA, USA"></td>
+                            <td><input type="text" class="form-control auth-email" value="bscholar@stanford.edu"></td>
+                            <td><button class="btn-action" onclick="deleteAuthorRow(this)">Remove</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button class="btn-add-row" onclick="addAuthorRow()">+ Add New Research Author Entry Row</button>
+            </div>
+        </div>
+
+        <div id="tab_context" class="tab-pane">
+            <div class="card">
+                <div class="sec-header">
+                    <div class="sec-icon" style="background:rgba(34,197,94,0.1);color:#22c55e;">&#128300;</div>
+                    <div>
+                        <div class="sec-title">Research Context Bullet Networks</div>
+                        <div class="sec-sub">Paste core analytical field findings — sequential generation engines expand inputs into standard prose</div>
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div>
+                        <div class="form-group">
+                            <label for="abstract_goals">Abstract Goals &amp; Analytical Contributions</label>
+                            <textarea id="abstract_goals" class="form-control" placeholder="* Novel cross-modal attention architecture&#10;* +4.2% over SOTA on MSR-VTT&#10;* 3x fewer parameters than TransformerXL">* Novel cross-modal attention architecture&#10;* +4.2% over SOTA on MSR-VTT&#10;* 3x fewer parameters than TransformerXL</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="methodology_notes">Methodology &amp; Mathematical Outlines</label>
+                            <textarea id="methodology_notes" class="form-control" placeholder="* Dual-stream encoder: visual (ViT-L) + textual (BERT-large)&#10;* Cross-modal attention at layers 4, 8, 12&#10;* Contrastive pre-training on 50M pairs&#10;* AdamW, lr=3e-4, cosine schedule, 100 epochs">* Dual-stream encoder: visual (ViT-L) + textual (BERT-large)&#10;* Cross-modal attention at layers 4, 8, 12&#10;* Contrastive pre-training on 50M pairs&#10;* AdamW, lr=3e-4, cosine schedule, 100 epochs</textarea>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="form-group">
+                            <label for="intro_bg">Introduction Foundations &amp; Literature Gaps</label>
+                            <textarea id="intro_bg" class="form-control" placeholder="* Multimodal learning surged since ViLBERT (2019)&#10;* Temporal alignment in video+text remains unsolved&#10;* Existing methods fail under occlusion and noise">* Multimodal learning surged since ViLBERT (2019)&#10;* Temporal alignment in video+text remains unsolved&#10;* Existing methods fail under occlusion and noise</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="results_data">Results, Benchmarks &amp; Empirical Data Metrics</label>
+                            <textarea id="results_data" class="form-control" placeholder="* Ours 89.4% vs CLIP 85.2% on MSR-VTT R@1&#10;* Ablation: removing visual stream -6.1%&#10;* Latency: 14ms vs 42ms for nearest baseline&#10;* FLOPS: 18.3B vs 52.1B for TransformerXL">* Ours 89.4% vs CLIP 85.2% on MSR-VTT R@1&#10;* Ablation: removing visual stream -6.1%&#10;* Latency: 14ms vs 42ms for nearest baseline&#10;* FLOPS: 18.3B vs 52.1B for TransformerXL</textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="extra_notes">Additional System Instructions / Editorial Overrides (Optional)</label>
+                    <textarea id="extra_notes" class="form-control" style="min-height: 60px;" placeholder="e.g. Emphasise efficiency, add limitations subsection, reference dataset X specifically"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab_bibliography" class="tab-pane">
+            <div class="card">
+                <div class="sec-header">
+                    <div class="sec-icon" style="background:rgba(236,72,153,0.1);color:#ec4899;">&#128218;</div>
+                    <div>
+                        <div class="sec-title">Bibliography Citation Datastore Records (BibTeX)</div>
+                        <div class="sec-sub">Paste valid BibTeX entries directly. Keys are auto-mapped inside synthesis instructions.</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <textarea id="bibtex_entries" class="form-control" style="min-height: 320px; font-family: monospace; font-size: 0.82rem;" placeholder="@inproceedings{vaswani2017attention,...}">@inproceedings{vaswani2017attention,
+  title     = {Attention Is All You Need},
+  author    = {Vaswani, Ashish and others},
+  booktitle = {NeurIPS},
+  year      = {2017},
+}
+@article{devlin2019bert,
+  title   = {BERT: Pre-training of Deep Bidirectional Transformers},
+  author  = {Devlin, Jacob and others},
+  journal = {arXiv:1810.04805},
+  year    = {2019},
+}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab_runtime" class="tab-pane">
+            <div class="card" style="text-align: center; padding: 36px 20px;" id="generation_trigger_card">
+                <div style="font-size: 2.5rem; margin-bottom: 12px;">&#128640;</div>
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px;">Compile and Synthesize Paper Ecosystem</h3>
+                <p style="font-size: 0.85rem; color: #64748b; max-width: 500px; margin: 0 auto 20px; line-height: 1.6;">
+                    Launches structural agents processing layout metrics sequentially. Pipeline executes multiple cascading text model passes via Gemini.
+                </p>
+                <button class="btn-primary" id="btn_trigger_pipeline" onclick="executeGenerationPipeline()">&#10024; Generate Full Academic Paper</button>
+            </div>
+
+            <div class="card loader-container" id="pipeline_processing_loader">
+                <div class="spinner"></div>
+                <h4 style="font-size: 0.95rem; font-weight: 600; margin-bottom: 6px;" id="loader_status_title">Executing Sequential Synthesis...</h4>
+                <p style="font-size: 0.8rem; color: #64748b; max-width: 450px; margin: 0 auto;" id="loader_status_desc">Processing cross-referenced arXiv queries and constructing mathematical layout frameworks (Est. time: 20-50s)...</p>
+            </div>
+
+            <div id="synthesis_success_output_panel" style="display: none;">
+                <div class="gen-status-bar">
+                    <div class="gen-status-dot"></div>
+                    <div class="gen-status-text">Academic Document Ecosystem Compiled Successfully</div>
+                    <div id="status_bar_metrics" class="gen-status-meta">4,821 words · 8 sections</div>
+                </div>
+
+                <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 14px; color:#0f172a;">📥 Target Asset Export Downloads</h3>
+                <div class="dl-grid">
+                    <div class="dl-card">
+                        <div class="dl-card-title">📝 LaTeX Document Source</div>
+                        <div class="dl-card-meta">Raw standalone structured main.tex file</div>
+                        <a href="/api/download/tex" class="dl-btn">Download .tex Only</a>
+                    </div>
+                    <div class="dl-card">
+                        <div class="dl-card-title">📦 Overleaf Ready Bundle</div>
+                        <div class="dl-card-meta">Full structural .zip archive with charts and bib databases</div>
+                        <a href="/api/download/zip" class="dl-btn" style="background:#2563eb; color:#fff; border-color:#2563eb;">Download Project ZIP</a>
+                    </div>
+                    <div class="dl-card">
+                        <div class="dl-card-title">🌐 Import Directly Online</div>
+                        <div class="dl-card-meta">Instantly sync workspaces to active Overleaf systems</div>
+                        <a href="[https://www.overleaf.com/project/new/upload](https://www.overleaf.com/project/new/upload)" target="_blank" class="dl-btn overleaf-cta">↗ Create New Overleaf Project</a>
+                    </div>
+                </div>
+
+                <div class="expander">
+                    <div class="expander-header" onclick="toggleExpander(this)">
+                        <span>&#128202; Section Length Analysis Word Count Matrices</span>
+                        <span>▼</span>
+                    </div>
+                    <div class="expander-content">
+                        <table class="metrics-table" id="metrics_results_tbody_table">
+                            <thead>
+                                <tr>
+                                    <th>Target Document Structural Node Section</th>
+                                    <th>Written Word Count Metrics</th>
+                                    <th>Initial Weight Blueprint Page Allocation Targets</th>
+                                    <th>Target Content Proportional Coverage Ratio</th>
+                                </tr>
+                            </thead>
+                            <tbody id="metrics_results_tbody">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="expander">
+                    <div class="expander-header" onclick="toggleExpander(this)">
+                        <span>&#128209; Preview Synthesized Academic Document LaTeX Sections Prose</span>
+                        <span>▼</span>
+                    </div>
+                    <div class="expander-content" id="sections_prose_preview_container">
+                        </div>
+                </div>
+
+                <div class="expander">
+                    <div class="expander-header" onclick="toggleExpander(this)">
+                        <span>&#128295; Raw Full System Unified Unified Document LaTeX Code Source String View</span>
+                        <span>▼</span>
+                    </div>
+                    <div class="expander-content">
+                        <pre><code id="raw_latex_source_code_display"></code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            SciWrite AI v2.0 &nbsp;&middot;&nbsp; Powered by Google Gemini 2.0 Flash Core Engine Runtime &nbsp;&middot;&nbsp; Multi-Agent Sequential Compilation Pipelines Infrastructure &nbsp;&middot;&nbsp; Flask Deployment Standardized
+        </footer>
+    </main>
+
+    <script>
+        let uploadedFiguresCache = [];
+
+        function switchTab(evt, tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+            evt.currentTarget.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        function updateSidebarEstimates() {
+            const pages = parseInt(document.getElementById('target_pages').value);
+            const isDouble = document.getElementById('lay_double').checked;
+            const wpp = isDouble ? 600 : 450;
+            const estimatedWords = pages * wpp;
+            document.getElementById('sidebar_metrics_est').innerText = `~${estimatedWords.toLocaleString()} words · ~${pages} pages`;
+        }
+
+        function addAuthorRow() {
+            const tbody = document.getElementById('authors_data_table').getElementsByTagName('tbody')[0];
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td><input type="text" class="form-control auth-name" value=""></td>
+                <td><input type="text" class="form-control auth-affil" value=""></td>
+                <td><input type="text" class="form-control auth-email" value=""></td>
+                <td><button class="btn-action" onclick="deleteAuthorRow(this)">Remove</button></td>
+            `;
+        }
+
+        function deleteAuthorRow(btn) {
+            const row = btn.parentNode.parentNode;
+            row.parentNode.removeChild(row);
+        }
+
+        function toggleExpander(header) {
+            header.parentNode.classList.toggle('open');
+        }
+
+        function handleFigureUploads() {
+            const files = document.getElementById('figure_uploader').files;
+            document.getElementById('file_count_feedback').innerText = `${files.length} figure(s) loaded.`;
+            
+            uploadedFiguresCache = [];
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onloadend = function() {
+                    uploadedFiguresCache.push({
+                        name: file.name,
+                        base64: reader.result
+                    });
+                }
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function serializeAuthorsDataMatrix() {
+            const authorsList = [];
+            const rows = document.querySelectorAll('#authors_data_table tbody tr');
+            rows.forEach(row => {
+                const name = row.querySelector('.auth-name').value.trim();
+                const affil = row.querySelector('.auth-affil').value.trim();
+                const email = row.querySelector('.auth-email').value.trim();
+                if (name) {
+                    authorsList.push({ name: name, affil: affil, email: email });
+                }
+            });
+            return authorsList;
+        }
+
+        function executeGenerationPipeline() {
+            const errorAlert = document.getElementById('global_error_alert');
+            errorAlert.style.display = 'none';
+            
+            // Validation architecture processing checks parameters fields rules
+            const authors = serializeAuthorsDataMatrix();
+            const title = document.getElementById('paper_title').value.trim();
+            if (!title) {
+                errorAlert.innerText = "Validation Rule Trigger Failure: Document paper workspace title metadata value field cannot be empty.";
+                errorAlert.style.display = 'block';
+                return;
+            }
+            if (authors.length === 0) {
+                errorAlert.innerText = "Validation Rule Trigger Failure: Operational constraint requirements call for at least one active valid Author row entry.";
+                errorAlert.style.display = 'block';
+                return;
+            }
+
+            // Adjust interface viewport visualization visibility status layer modes settings
+            document.getElementById('generation_trigger_card').style.display = 'none';
+            document.getElementById('synthesis_success_output_panel').style.display = 'none';
+            document.getElementById('pipeline_processing_loader').style.display = 'block';
+
+            // Extract values out of controls wrappers components boundaries layers
+            const payload = {
+                title: title,
+                keywords: document.getElementById('paper_keywords').value.trim(),
+                layout: document.querySelector('input[name="layout_opt"]:checked').value,
+                target_pages: document.getElementById('target_pages').value,
+                venue: document.getElementById('target_venue').value,
+                abstract_goals: document.getElementById('abstract_goals').value,
+                intro_bg: document.getElementById('intro_bg').value,
+                methodology_notes: document.getElementById('methodology_notes').value,
+                results_data: document.getElementById('results_data').value,
+                extra_notes: document.getElementById('extra_notes').value,
+                bibtex_entries: document.getElementById('bibtex_entries').value,
+                authors: authors,
+                uploaded_figures: uploadedFiguresCache
+            };
+
+            fetch('/api/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('pipeline_processing_loader').style.display = 'none';
+                
+                if (!data.success) {
+                    errorAlert.innerText = `Generation Pipeline Exception: ${data.error}`;
+                    errorAlert.style.display = 'block';
+                    document.getElementById('generation_trigger_card').style.display = 'block';
+                    return;
+                }
+
+                // Update structural metrics status metadata text indicators blocks fields
+                document.getElementById('status_bar_metrics').innerText = `${data.total_words.toLocaleString()} words · ${data.sections_count} structural document sections mapped`;
+                
+                // Construct and build structural tables analysis presentation layers components grids arrays
+                const tbody = document.getElementById('metrics_results_tbody');
+                tbody.innerHTML = '';
+                data.metrics.forEach(m => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td><strong>${m.section}</strong></td><td>${m.written.toLocaleString()} words</td><td>${m.target} words target blueprint</td><td><span style="color:#16a34a; font-weight:600;">${m.coverage}</span></td>`;
+                    tbody.appendChild(tr);
+                });
+
+                // Structural rendering construction outputs field views previews wrappers zones blocks items elements layers
+                const previewContainer = document.getElementById('sections_prose_preview_container');
+                previewContainer.innerHTML = '';
+                Object.keys(data.preview_sections).forEach(tag => {
+                    const textContent = data.preview_sections[tag];
+                    const wordCount = textContent.split(/\s+/).length;
+                    
+                    const headerLabel = document.createElement('div');
+                    headerLabel.style = "font-size: 0.82rem; font-weight: 700; color: #6d28d9; margin: 16px 0 6px; text-transform: uppercase; letter-spacing:0.02em;";
+                    headerLabel.innerHTML = `${tag.replace(/_/g, ' ')} <span style="font-weight:400; color:#64748b; font-size:0.75rem;">(${wordCount} words synthesized)</span>`;
+                    
+                    const blockPre = document.createElement('pre');
+                    blockPre.style = "background: #f8fafc; color: #334155; border: 1px solid #e2e8f0; font-size:0.78rem; margin-bottom:14px;";
+                    blockPre.innerText = textContent.length > 1500 ? textContent.substring(0, 1500) + "\n\n... [Content Truncated in System Interface Previews — Download Source Assets to View Full Unified Structures]" : textContent;
+                    
+                    previewContainer.appendChild(headerLabel);
+                    previewContainer.appendChild(blockPre);
+                });
+
+                // Inject baseline text directly into raw document global display layer block component element code
+                document.getElementById('raw_latex_source_code_display').innerText = data.latex_src;
+
+                // Adjust macro panel display status visibility blocks properties
+                document.getElementById('synthesis_success_output_panel').style.display = 'block';
+                document.getElementById('generation_trigger_card').style.display = 'block';
+            })
+            .catch(err => {
+                document.getElementById('pipeline_processing_loader').style.display = 'none';
+                document.getElementById('generation_trigger_card').style.display = 'block';
+                errorAlert.innerText = `Critical Core Infrastructure Network Error Triggered Block Event Exception: ${err.message}`;
+                errorAlert.style.display = 'block';
+            });
+        }
+
+        // Run initial calculation parameters steps to establish setup baselines
+        updateSidebarEstimates();
+    </script>
+</body>
+</html>
